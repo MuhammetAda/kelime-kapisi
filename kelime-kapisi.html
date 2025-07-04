@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kelime Kapısı - Tüm Özellikler</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Fredoka', sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0 10px;
+      background: linear-gradient(to bottom, #f0f8ff, #d0e8f2);
+    }
+    h1 {
+      background-color: #4a90e2;
+      color: white;
+      padding: 20px;
+      margin: 0;
+      font-size: 32px;
+    }
+    #canlar {
+      font-size: 24px;
+      margin: 20px 0 10px 0;
+    }
+    #sure {
+      font-size: 22px;
+      margin: 0 0 20px 0;
+      font-weight: bold;
+    }
+    #ipucu {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #555;
+      font-style: italic;
+    }
+    .harf {
+      display: inline-block;
+      margin: 10px;
+      padding: 20px 25px;
+      font-size: 28px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: 0.2s;
+      user-select: none;
+    }
+    .harf:hover {
+      background-color: #f0f0f0;
+    }
+    .harf.secilen {
+      background-color: #a5d6a7;
+      color: black;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 18px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #388e3c;
+    }
+    #mesaj {
+      margin-top: 20px;
+      font-size: 20px;
+      min-height: 24px;
+    }
+
+    /* Mobil uyumlu ayarlar */
+    @media (max-width: 600px) {
+      .harf {
+        padding: 15px 18px;
+        font-size: 22px;
+        margin: 6px;
+      }
+      button {
+        width: 100%;
+        font-size: 20px;
+        padding: 15px 0;
+      }
+      h1 {
+        font-size: 26px;
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 Kelime Kapısı</h1>
+  <div id="canlar">❤️❤️❤️</div>
+  <div id="sure">Kalan Süre: 15s</div>
+  <div id="ipucu"></div>
+  <div id="harfler"></div>
+  <br />
+  <button onclick="kontrolEt()">ONAYLA</button>
+  <p id="mesaj"></p>
+
+  <!-- Ses dosyaları için audio elementleri -->
+  <audio id="ses-click" src="click.mp3"></audio>
+  <audio id="ses-dogru" src="dogru.mp3"></audio>
+  <audio id="ses-yanlis" src="yanlis.mp3"></audio>
+
+  <script>
+    let bolumler = [
+      { kelime: "ARMA", ipucu: "Spor Takımı Sembolü" },
+      { kelime: "ELMA", ipucu: "Bir Meyve" },
+      { kelime: "KAPI", ipucu: "Giriş veya Çıkış Yeri" },
+      { kelime: "MASA", ipucu: "Üzerinde Çalışılan Eşya" },
+      { kelime: "BALIK", ipucu: "Suda Yaşayan Hayvan" }
+    ];
+
+    let aktifBolum = 0;
+    let secilenler = [];
+    let can = 3;
+    let zaman;
+    let kalanSure = 15;
+
+    const harflerDiv = document.getElementById("harfler");
+    const mesaj = document.getElementById("mesaj");
+    const canlarDiv = document.getElementById("canlar");
+    const sureDiv = document.getElementById("sure");
+    const ipucuDiv = document.getElementById("ipucu");
+
+    // Ses çalma fonksiyonu
+    function sesCal(tip) {
+      let ses = document.getElementById("ses-" + tip);
+      if (ses) ses.play();
+    }
+
+    function harfleriKaristir(kelime) {
+      return kelime.split("").sort(() => Math.random() - 0.5);
+    }
+
+    function guncelleHarfler() {
+      harflerDiv.innerHTML = "";
+      secilenler = [];
+
+      let dogruKelime = bolumler[aktifBolum].kelime;
+      let karisik = harfleriKaristir(dogruKelime);
+
+      karisik.forEach((harf, index) => {
+        let span = document.createElement("span");
+        span.innerText = harf;
+        span.className = "harf";
+        span.onclick = () => {
+          if (secilenler.length < dogruKelime.length) {
+            secilenler.push(harf);
+            span.classList.add("secilen");
+            sesCal("click");
+          }
+        };
+        harflerDiv.appendChild(span);
+      });
+
+      mesaj.innerText = `Bölüm ${aktifBolum + 1}`;
+      ipucuDiv.innerText = "İpucu: " + bolumler[aktifBolum].ipucu;
+      baslatSayac();
+    }
+
+    function kontrolEt() {
+      let girilen = secilenler.join("");
+      let dogruKelime = bolumler[aktifBolum].kelime;
+
+      clearInterval(zaman);
+
+      if (girilen === dogruKelime) {
+        sesCal("dogru");
+        aktifBolum++;
+        if (aktifBolum < bolumler.length) {
+          mesaj.innerText = "✅ Doğru! Sonraki bölüme geçiliyor...";
+          setTimeout(() => guncelleHarfler(), 1000);
+        } else {
+          mesaj.innerText = "🎉 Tebrikler! Tüm bölümleri tamamladın.";
+          harflerDiv.innerHTML = "";
+          sureDiv.innerText = "";
+          ipucuDiv.innerText = "";
+        }
+      } else {
+        sesCal("yanlis");
+        can--;
+        canlarDiv.innerText = "❤️".repeat(can);
+        mesaj.innerText = "❌ Yanlış! Kalan can: " + can;
+        if (can <= 0) {
+          mesaj.innerText = "☠️ Oyun bitti!";
+          harflerDiv.innerHTML = "";
+          sureDiv.innerText = "";
+          ipucuDiv.innerText = "";
+        } else {
+          setTimeout(() => guncelleHarfler(), 1000);
+        }
+      }
+    }
+
+    function baslatSayac() {
+      clearInterval(zaman);
+      kalanSure = 15;
+      sureDiv.innerText = `Kalan Süre: ${kalanSure}s`;
+
+      zaman = setInterval(() => {
+        kalanSure--;
+        sureDiv.innerText = `Kalan Süre: ${kalanSure}s`;
+        if (kalanSure <= 0) {
+          clearInterval(zaman);
+          can--;
+          canlarDiv.innerText = "❤️".repeat(can);
+          mesaj.innerText = `⏱️ Süre bitti! Kalan can: ${can}`;
+          if (can <= 0) {
+            mesaj.innerText = "☠️ Oyun bitti! Süreden dolayı.";
+            harflerDiv.innerHTML = "";
+            sureDiv.innerText = "";
+            ipucuDiv.innerText = "";
+          } else {
+            setTimeout(() => guncelleHarfler(), 1000);
+          }
+        }
+      }, 1000);
+    }
+
+    // Oyun başlat
+    guncelleHarfler();
+  </script>
+</body>
+</html>
